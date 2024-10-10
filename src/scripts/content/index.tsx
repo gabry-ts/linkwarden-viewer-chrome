@@ -7,38 +7,38 @@ const isProduction: boolean = process.env.NODE_ENV === 'production'
 const ROOT_ID = 'RENAME_ME_IF_YOU_WANT'
 
 const injectReact = (rootId: string): void => {
-    try {
-        const container = document.createElement('div')
-        document.body.appendChild(container)
+  try {
+    const container = document.createElement('div')
+    document.body.appendChild(container)
 
-        if (container) {
-            container.id = rootId
-            container.style.position = 'inherit'
-            container.style.zIndex = '2147483666'
-        }
-
-        if (isProduction) {
-            console.log('Production mode 🚀. Adding Shadow DOM')
-            container.attachShadow({ mode: 'open' })
-        } else {
-            console.log('Development mode 🛠')
-        }
-
-        const target: ShadowRoot | HTMLElement = isProduction ? container.shadowRoot! : container
-
-        const root = createRoot(target!)
-
-        root.render(
-            <React.StrictMode>
-                <>
-                    {isProduction && <style>{styles.toString()}</style>}
-                    <App />
-                </>
-            </React.StrictMode>
-        )
-    } catch (error) {
-        console.error('Error Injecting React', error)
+    if (container) {
+      container.id = rootId
+      container.style.position = 'inherit'
+      container.style.zIndex = '2147483666'
     }
+
+    if (isProduction) {
+      console.log('Production mode 🚀. Adding Shadow DOM')
+      container.attachShadow({ mode: 'open' })
+    } else {
+      console.log('Development mode 🛠')
+    }
+
+    const target: ShadowRoot | HTMLElement = isProduction ? container.shadowRoot! : container
+
+    const root = createRoot(target!)
+
+    root.render(
+      <React.StrictMode>
+        <>
+          {isProduction && <style>{styles.toString()}</style>}
+          <App />
+        </>
+      </React.StrictMode>,
+    )
+  } catch (error) {
+    console.error('Error Injecting React', error)
+  }
 }
 
 injectReact(ROOT_ID)
