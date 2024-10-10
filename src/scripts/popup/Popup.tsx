@@ -537,10 +537,6 @@ const AddLinkModal = ({
                         >
                             <option value="">Select a folder</option>
                             {folders
-                                .map(r => ({
-                                    ...r,
-                                    name: r.parent ? r.parent.name + ' / ' + r.name : r.name
-                                }))
                                 .sort((a, b) => a.name.localeCompare(b.name))
                                 .map(folder => (
                                     <option key={folder.id} value={folder.id}>
