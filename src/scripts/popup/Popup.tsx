@@ -33,7 +33,6 @@ const useDarkMode = () => {
 
 const Popup = () => {
     const [folders, setFolders] = useState([])
-    const [links, setLinks] = useState([])
     const [allLinks, setAllLinks] = useState([])
     const [openFolders, setOpenFolders] = useState(new Set())
     const [searchQuery, setSearchQuery] = useState('')
@@ -119,17 +118,8 @@ const Popup = () => {
                 newOpenFolders.delete(folderId)
             } else {
                 newOpenFolders.add(folderId)
-                loadLinks(folderId)
             }
             return newOpenFolders
-        })
-    }
-
-    const loadLinks = (folderId: string) => {
-        chrome.runtime.sendMessage({ action: 'getLinks', collectionId: folderId }, response => {
-            if (response) {
-                setLinks(prevLinks => [...prevLinks, ...response])
-            }
         })
     }
 
@@ -137,7 +127,7 @@ const Popup = () => {
         setSearchQuery(e.target.value)
     }
 
-    const filteredLinks = links.filter(
+    const filteredLinks = allLinks.filter(
         link =>
             link.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             link.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -236,14 +226,22 @@ const Popup = () => {
                 </button>
             </div>
             <div className="max-h-96 overflow-y-auto">
-                <FolderStructure
-                    folders={folders}
-                    openFolders={openFolders}
-                    toggleFolder={toggleFolder}
-                    links={filteredLinks}
-                    refreshData={refreshData}
-                    isDarkMode={isDarkMode}
-                />
+                {searchQuery ? (
+                    <SearchResults
+                        links={filteredLinks}
+                        refreshData={refreshData}
+                        isDarkMode={isDarkMode}
+                    />
+                ) : (
+                    <FolderStructure
+                        folders={folders}
+                        openFolders={openFolders}
+                        toggleFolder={toggleFolder}
+                        links={allLinks}
+                        refreshData={refreshData}
+                        isDarkMode={isDarkMode}
+                    />
+                )}
             </div>
             {isAddLinkModalOpen && (
                 <AddLinkModal
@@ -257,6 +255,23 @@ const Popup = () => {
                     isDarkMode={isDarkMode}
                 />
             )}
+        </div>
+    )
+}
+
+const SearchResults = ({ links, refreshData, isDarkMode }) => {
+    const sortedLinks = [...links].sort((a, b) => a.name.localeCompare(b.name))
+
+    return (
+        <div>
+            {sortedLinks.map(link => (
+                <LinkItem
+                    key={link.id}
+                    link={link}
+                    refreshData={refreshData}
+                    isDarkMode={isDarkMode}
+                />
+            ))}
         </div>
     )
 }
