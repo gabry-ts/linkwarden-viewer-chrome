@@ -1,4 +1,4 @@
-import { LinkwardenService } from './service'
+import { LinkwardenService } from './linkwarden-service'
 
 let host: string
 let token: string
