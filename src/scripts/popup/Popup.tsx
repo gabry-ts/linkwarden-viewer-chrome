@@ -82,13 +82,16 @@ const Popup = () => {
         chrome.storage.local.get('openFolders', result => {
             if (result.openFolders) {
                 setOpenFolders(new Set(result.openFolders))
+                result.openFolders.forEach(folderId => {
+                    loadLinksForFolder(folderId)
+                })
             }
         })
     }
 
-    const saveOpenFolders = useCallback(() => {
-        chrome.storage.local.set({ openFolders: Array.from(openFolders) })
-    }, [openFolders])
+    const saveOpenFolders = useCallback(newOpenFolders => {
+        chrome.storage.local.set({ openFolders: Array.from(newOpenFolders) })
+    }, [])
 
     const checkOptions = () => {
         chrome.runtime.sendMessage({ action: 'checkOptions' }, optionsSet => {
@@ -115,6 +118,7 @@ const Popup = () => {
                 newOpenFolders.add(folderId)
                 loadLinksForFolder(folderId)
             }
+            saveOpenFolders(newOpenFolders)
             return newOpenFolders
         })
     }
@@ -137,7 +141,7 @@ const Popup = () => {
     const filteredLinks = Object.values(linksByFolder)
         .flat()
         .filter(
-            (link: { name: string; url: string; tags: { name: string }[] }) =>
+            (link: { name: string; url: string; tags?: { name: string }[] }) =>
                 link.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 link.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (link.tags &&
@@ -271,7 +275,6 @@ const Popup = () => {
         </div>
     )
 }
-
 const SearchResults = ({ links, refreshData, isDarkMode }) => {
     const sortedLinks = [...links].sort((a, b) => a.name.localeCompare(b.name))
 
