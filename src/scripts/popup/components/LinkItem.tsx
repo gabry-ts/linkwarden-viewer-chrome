@@ -1,27 +1,30 @@
-import { LinkIcon, Trash2 } from 'lucide-react'
-import React, { useState } from 'react'
+import { LinkIcon, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
 
 export const LinkItem = ({ link, refreshData, isDarkMode }) => {
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   const handleDelete = () => {
-    setShowConfirmDelete(true)
-  }
+    setShowConfirmDelete(true);
+  };
 
   const confirmDelete = () => {
-    chrome.runtime.sendMessage({ action: 'deleteLink', id: link.id }, (response) => {
-      if (response.success) {
-        refreshData()
-      } else {
-        alert('Error deleting link. Please try again.')
-      }
-    })
-    setShowConfirmDelete(false)
-  }
+    chrome.runtime.sendMessage(
+      { action: 'deleteLink', id: link.id },
+      (response) => {
+        if (response.success) {
+          refreshData();
+        } else {
+          alert('Error deleting link. Please try again.');
+        }
+      },
+    );
+    setShowConfirmDelete(false);
+  };
 
   const cancelDelete = () => {
-    setShowConfirmDelete(false)
-  }
+    setShowConfirmDelete(false);
+  };
   return (
     <div
       className={`flex flex-col p-2 rounded-md mb-2 relative group ${
@@ -84,5 +87,5 @@ export const LinkItem = ({ link, refreshData, isDarkMode }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};

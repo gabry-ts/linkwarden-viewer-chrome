@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 export const AddLinkModal = ({
   newLink,
@@ -56,7 +56,10 @@ export const AddLinkModal = ({
             />
           </div>
           <div>
-            <label htmlFor="collectionId" className="block text-xs font-medium mb-1">
+            <label
+              htmlFor="collectionId"
+              className="block text-xs font-medium mb-1"
+            >
               Folder
             </label>
             <select
@@ -76,7 +79,9 @@ export const AddLinkModal = ({
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((folder) => (
                   <option key={folder.id} value={folder.id}>
-                    {folder.parent ? folder.parent.name + ' / ' + folder.name : folder.name}
+                    {folder.parent
+                      ? folder.parent.name + ' / ' + folder.name
+                      : folder.name}
                   </option>
                 ))}
             </select>
@@ -127,4 +132,4 @@ export const AddLinkModal = ({
       </form>
     </div>
   </div>
-)
+);

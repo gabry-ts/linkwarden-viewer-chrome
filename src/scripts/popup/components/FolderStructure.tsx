@@ -1,5 +1,5 @@
-import React from 'react'
-import { FolderItem } from './FolderItem'
+import React from 'react';
+import { FolderItem } from './FolderItem';
 
 export const FolderStructure = ({
   folders,
@@ -10,8 +10,10 @@ export const FolderStructure = ({
   isDarkMode,
   loadLinksForFolder,
 }) => {
-  const sortedFolders = [...folders].sort((a, b) => a.name.localeCompare(b.name))
-  const rootFolders = sortedFolders.filter((folder) => !folder.parentId)
+  const sortedFolders = [...folders].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+  const rootFolders = sortedFolders.filter((folder) => !folder.parentId);
 
   const renderFolder = (folder) => (
     <FolderItem
@@ -26,7 +28,7 @@ export const FolderStructure = ({
       isDarkMode={isDarkMode}
       loadLinksForFolder={loadLinksForFolder}
     />
-  )
+  );
 
-  return <div>{rootFolders.map(renderFolder)}</div>
-}
+  return <div>{rootFolders.map(renderFolder)}</div>;
+};

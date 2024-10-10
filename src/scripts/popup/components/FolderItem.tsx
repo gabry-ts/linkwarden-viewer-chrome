@@ -1,6 +1,6 @@
-import { FolderOpen, Folder, ChevronRight } from 'lucide-react'
-import React, { useEffect } from 'react'
-import { LinkItem } from './LinkItem'
+import { FolderOpen, Folder, ChevronRight } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { LinkItem } from './LinkItem';
 
 export const FolderItem = ({
   folder,
@@ -13,20 +13,22 @@ export const FolderItem = ({
   isDarkMode,
   loadLinksForFolder,
 }) => {
-  const isOpen = openFolders.has(folder.id)
-  const sortedLinks = [...links].sort((a, b) => a.name.localeCompare(b.name))
+  const isOpen = openFolders.has(folder.id);
+  const sortedLinks = [...links].sort((a, b) => a.name.localeCompare(b.name));
 
   useEffect(() => {
     if (isOpen && links.length === 0) {
-      loadLinksForFolder(folder.id)
+      loadLinksForFolder(folder.id);
     }
-  }, [isOpen, folder.id, links.length, loadLinksForFolder])
+  }, [isOpen, folder.id, links.length, loadLinksForFolder]);
 
   return (
     <div className="mb-2">
       <div
         className={`flex items-center p-2 rounded-md cursor-pointer ${
-          isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-100'
+          isDarkMode
+            ? 'bg-gray-800 hover:bg-gray-700'
+            : 'bg-white hover:bg-gray-100'
         }`}
         onClick={() => toggleFolder(folder.id)}
       >
@@ -55,5 +57,5 @@ export const FolderItem = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};

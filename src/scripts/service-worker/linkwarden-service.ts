@@ -1,22 +1,22 @@
 export class LinkwardenService {
-  host: string
-  token: string
-  refreshInterval = 0
+  host: string;
+  token: string;
+  refreshInterval = 0;
   constructor(host: string, token: string) {
-    this.host = host
-    this.token = token
-    this.init()
+    this.host = host;
+    this.token = token;
+    this.init();
   }
   init() {
     chrome.storage.sync.get(['host', 'token', 'refreshInterval'], (result) => {
-      this.host = result.host
-      this.token = result.token
+      this.host = result.host;
+      this.token = result.token;
       if (result.refreshInterval) {
         chrome.alarms.create('refreshData', {
           periodInMinutes: parseInt(result.refreshInterval),
-        })
+        });
       }
-    })
+    });
   }
 
   async fetchFolders() {
@@ -25,26 +25,29 @@ export class LinkwardenService {
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
-      })
-      const data = await response.json()
-      chrome.storage.local.set({ folders: data.response })
-      return data.response
+      });
+      const data = await response.json();
+      chrome.storage.local.set({ folders: data.response });
+      return data.response;
     } catch (error) {
-      console.error('Error fetching folders:', error)
+      console.error('Error fetching folders:', error);
     }
   }
 
   async fetchLinks(collectionId: string) {
     try {
-      const response = await fetch(`${this.host}/api/v1/links?collectionId=${collectionId}`, {
-        headers: {
-          Authorization: `Bearer ${this.token}`,
+      const response = await fetch(
+        `${this.host}/api/v1/links?collectionId=${collectionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
         },
-      })
-      const data = await response.json()
-      return data.response
+      );
+      const data = await response.json();
+      return data.response;
     } catch (error) {
-      console.error('Error fetching links:', error)
+      console.error('Error fetching links:', error);
     }
   }
 
@@ -54,15 +57,20 @@ export class LinkwardenService {
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
-      })
-      const data = await response.json()
-      return data.response
+      });
+      const data = await response.json();
+      return data.response;
     } catch (error) {
-      console.error('Error fetching tags:', error)
+      console.error('Error fetching tags:', error);
     }
   }
 
-  async saveLink(link: { title: string; url: string; collectionId: string; tags: string[] }) {
+  async saveLink(link: {
+    title: string;
+    url: string;
+    collectionId: string;
+    tags: string[];
+  }) {
     try {
       const response = await fetch(`${this.host}/api/v1/links`, {
         method: 'POST',
@@ -71,12 +79,12 @@ export class LinkwardenService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(link),
-      })
-      const data = await response.json()
-      return { success: true, data: data.response }
+      });
+      const data = await response.json();
+      return { success: true, data: data.response };
     } catch (error) {
-      console.error('Error saving link:', error)
-      return { success: false, error: error.message }
+      console.error('Error saving link:', error);
+      return { success: false, error: error.message };
     }
   }
 
@@ -87,12 +95,12 @@ export class LinkwardenService {
         headers: {
           Authorization: `Bearer ${this.token}`,
         },
-      })
-      const data = await response.json()
-      return { success: true, data: data.response }
+      });
+      const data = await response.json();
+      return { success: true, data: data.response };
     } catch (error) {
-      console.error('Error deleting link:', error)
-      return { success: false, error: error.message }
+      console.error('Error deleting link:', error);
+      return { success: false, error: error.message };
     }
   }
 
@@ -100,11 +108,11 @@ export class LinkwardenService {
     try {
       const response = await fetch(`${this.host}/api/v1/links`, {
         headers: { Authorization: `Bearer ${this.token}` },
-      })
-      const data = await response.json()
-      return data.response
+      });
+      const data = await response.json();
+      return data.response;
     } catch (error) {
-      console.error('Error fetching links:', error)
+      console.error('Error fetching links:', error);
     }
   }
 }

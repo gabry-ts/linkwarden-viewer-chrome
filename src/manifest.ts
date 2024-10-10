@@ -1,52 +1,52 @@
-import fs from 'fs-extra'
-import path from 'path'
+import fs from 'fs-extra';
+import path from 'path';
 
 interface Manifest {
-  manifest_version: number
-  name: string
-  version: string
-  description: string
+  manifest_version: number;
+  name: string;
+  version: string;
+  description: string;
   action: {
-    default_popup: string
-  }
+    default_popup: string;
+  };
   options_ui: {
-    page: string
-    open_in_tab: boolean
-  }
+    page: string;
+    open_in_tab: boolean;
+  };
   background: {
-    service_worker: string
-    type: string
-  }
-  host_permissions?: string[]
+    service_worker: string;
+    type: string;
+  };
+  host_permissions?: string[];
   icons: {
-    [key: number]: string
-  }
-  permissions: string[]
+    [key: number]: string;
+  };
+  permissions: string[];
   content_scripts: Array<{
-    matches: string[]
-    js: string[]
-  }>
+    matches: string[];
+    js: string[];
+  }>;
   web_accessible_resources?: Array<{
-    matches: string[]
-    resources: string[]
-  }>
+    matches: string[];
+    resources: string[];
+  }>;
   commands?: {
     [key: string]: {
       suggested_key: {
-        default: string
-        mac?: string
-        windows?: string
-        chromeos?: string
-        linux?: string
-      }
-      description: string
-    }
-  }
+        default: string;
+        mac?: string;
+        windows?: string;
+        chromeos?: string;
+        linux?: string;
+      };
+      description: string;
+    };
+  };
 }
 
 const createBaseManifest = async (): Promise<Manifest> => {
   try {
-    const pkg = await fs.readJSON('package.json')
+    const pkg = await fs.readJSON('package.json');
 
     return {
       manifest_version: 3,
@@ -84,16 +84,16 @@ const createBaseManifest = async (): Promise<Manifest> => {
           description: 'Refresh Extension', // https://developer.chrome.com/docs/extensions/reference/commands/
         },
       },
-    }
+    };
   } catch (error) {
-    console.error('Error reading package.json:', error)
-    throw error
+    console.error('Error reading package.json:', error);
+    throw error;
   }
-}
+};
 
 const getManifest = async (resources: string[]): Promise<Manifest> => {
   try {
-    const baseManifest = await createBaseManifest()
+    const baseManifest = await createBaseManifest();
     return {
       ...baseManifest,
       web_accessible_resources: [
@@ -102,34 +102,34 @@ const getManifest = async (resources: string[]): Promise<Manifest> => {
           resources,
         },
       ],
-    }
+    };
   } catch (error) {
-    console.error('Error creating manifest:', error)
-    throw error
+    console.error('Error creating manifest:', error);
+    throw error;
   }
-}
+};
 
 const readJsFiles = async (dir: string): Promise<string[]> => {
   try {
-    const files = await fs.readdir(dir)
+    const files = await fs.readdir(dir);
     return files
       .filter((file: string) => path.extname(file) === '.js')
-      .map((file: string) => path.join(dir, file))
+      .map((file: string) => path.join(dir, file));
   } catch (error) {
-    console.error(`Error reading JS files from ${dir}:`, error)
-    throw error
+    console.error(`Error reading JS files from ${dir}:`, error);
+    throw error;
   }
-}
+};
 
 export const writeManifest = async (): Promise<void> => {
   try {
-    const dir = 'dist/js'
-    const files = await readJsFiles(dir)
+    const dir = 'dist/js';
+    const files = await readJsFiles(dir);
 
-    const manifest = await getManifest(files)
+    const manifest = await getManifest(files);
 
-    fs.writeFileSync('dist/manifest.json', JSON.stringify(manifest, null, 2))
+    fs.writeFileSync('dist/manifest.json', JSON.stringify(manifest, null, 2));
   } catch (error) {
-    console.error('Issue writing manifest.json:', error)
+    console.error('Issue writing manifest.json:', error);
   }
-}
+};

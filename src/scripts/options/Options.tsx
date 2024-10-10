@@ -1,59 +1,64 @@
-import React, { useState, useEffect } from 'react'
-import { Eye, EyeOff, Save, RefreshCw } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, Save, RefreshCw } from 'lucide-react';
 
 const Options = () => {
-  const [host, setHost] = useState('')
-  const [token, setToken] = useState('')
-  const [refreshInterval, setRefreshInterval] = useState(30)
-  const [status, setStatus] = useState('')
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [showToken, setShowToken] = useState(false)
+  const [host, setHost] = useState('');
+  const [token, setToken] = useState('');
+  const [refreshInterval, setRefreshInterval] = useState(30);
+  const [status, setStatus] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showToken, setShowToken] = useState(false);
 
   useEffect(() => {
-    chrome.storage.sync.get(['host', 'token', 'refreshInterval'], function (items) {
-      setHost(items.host || '')
-      setToken(items.token || '')
-      setRefreshInterval(items.refreshInterval || 30)
-    })
+    chrome.storage.sync.get(
+      ['host', 'token', 'refreshInterval'],
+      function (items) {
+        setHost(items.host || '');
+        setToken(items.token || '');
+        setRefreshInterval(items.refreshInterval || 30);
+      },
+    );
 
-    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    setIsDarkMode(darkModeMediaQuery.matches)
+    const darkModeMediaQuery = window.matchMedia(
+      '(prefers-color-scheme: dark)',
+    );
+    setIsDarkMode(darkModeMediaQuery.matches);
 
-    const listener = (e) => setIsDarkMode(e.matches)
-    darkModeMediaQuery.addListener(listener)
+    const listener = (e) => setIsDarkMode(e.matches);
+    darkModeMediaQuery.addListener(listener);
 
-    return () => darkModeMediaQuery.removeListener(listener)
-  }, [])
+    return () => darkModeMediaQuery.removeListener(listener);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     chrome.storage.sync.set({ host, token, refreshInterval }, function () {
-      setStatus('Options saved successfully.')
-      setTimeout(() => setStatus(''), 3000)
-      chrome.alarms.create('refreshData', { periodInMinutes: refreshInterval })
-    })
-  }
+      setStatus('Options saved successfully.');
+      setTimeout(() => setStatus(''), 3000);
+      chrome.alarms.create('refreshData', { periodInMinutes: refreshInterval });
+    });
+  };
 
   const handleRefresh = () => {
-    setStatus('Refreshing data...')
+    setStatus('Refreshing data...');
     chrome.runtime.sendMessage({ action: 'refreshData' }, function (response) {
       if (response) {
-        setStatus('Data refreshed successfully.')
+        setStatus('Data refreshed successfully.');
       } else {
-        setStatus('Error refreshing data. Please check your settings.')
+        setStatus('Error refreshing data. Please check your settings.');
       }
-      setTimeout(() => setStatus(''), 3000)
-    })
-  }
+      setTimeout(() => setStatus(''), 3000);
+    });
+  };
 
-  const toggleShowToken = () => setShowToken(!showToken)
+  const toggleShowToken = () => setShowToken(!showToken);
 
   const inputClass = `mt-1 block w-full px-3 py-2 text-sm rounded-md shadow-sm transition duration-150 ease-in-out
         ${
           isDarkMode
             ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-400 focus:ring focus:ring-blue-400 focus:ring-opacity-50'
             : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50'
-        }`
+        }`;
 
   return (
     <div
@@ -113,7 +118,9 @@ const Options = () => {
                       className={`h-5 w-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
                     />
                   ) : (
-                    <Eye className={`h-5 w-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                    <Eye
+                      className={`h-5 w-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                    />
                   )}
                 </button>
               </div>
@@ -164,7 +171,9 @@ const Options = () => {
           {status && (
             <div
               className={`mt-6 p-3 rounded-md text-center text-sm ${
-                isDarkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
+                isDarkMode
+                  ? 'bg-blue-900 text-blue-200'
+                  : 'bg-blue-100 text-blue-800'
               }`}
             >
               {status}
@@ -173,7 +182,7 @@ const Options = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Options
+export default Options;
