@@ -33,7 +33,7 @@ const useDarkMode = () => {
 
 const Popup = () => {
     const [folders, setFolders] = useState([])
-    const [allLinks, setAllLinks] = useState([])
+    const [linksByFolder, setLinksByFolder] = useState({})
     const [openFolders, setOpenFolders] = useState(new Set())
     const [searchQuery, setSearchQuery] = useState('')
     const [isAddLinkModalOpen, setIsAddLinkModalOpen] = useState(false)
@@ -104,11 +104,6 @@ const Popup = () => {
                 setFolders(response)
             }
         })
-        chrome.runtime.sendMessage({ action: 'getAllLinks' }, response => {
-            if (response) {
-                setAllLinks(response)
-            }
-        })
     }
 
     const toggleFolder = (folderId: string) => {
@@ -118,8 +113,20 @@ const Popup = () => {
                 newOpenFolders.delete(folderId)
             } else {
                 newOpenFolders.add(folderId)
+                loadLinksForFolder(folderId)
             }
             return newOpenFolders
+        })
+    }
+
+    const loadLinksForFolder = (folderId: string) => {
+        chrome.runtime.sendMessage({ action: 'getLinks', collectionId: folderId }, response => {
+            if (response) {
+                setLinksByFolder(prev => ({
+                    ...prev,
+                    [folderId]: response
+                }))
+            }
         })
     }
 
@@ -127,13 +134,17 @@ const Popup = () => {
         setSearchQuery(e.target.value)
     }
 
-    const filteredLinks = allLinks.filter(
-        link =>
-            link.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            link.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (link.tags &&
-                link.tags.some(tag => tag.name.toLowerCase().includes(searchQuery.toLowerCase())))
-    )
+    const filteredLinks = Object.values(linksByFolder)
+        .flat()
+        .filter(
+            (link: { name: string; url: string; tags: { name: string }[] }) =>
+                link.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                link.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (link.tags &&
+                    link.tags.some(tag =>
+                        tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+                    ))
+        )
 
     const closeAddLinkModal = () => {
         setIsAddLinkModalOpen(false)
@@ -154,6 +165,7 @@ const Popup = () => {
             if (response.success) {
                 closeAddLinkModal()
                 refreshData()
+                loadLinksForFolder(newLink.collectionId)
             } else {
                 alert('Error saving link. Please try again.')
             }
@@ -237,9 +249,10 @@ const Popup = () => {
                         folders={folders}
                         openFolders={openFolders}
                         toggleFolder={toggleFolder}
-                        links={allLinks}
+                        linksByFolder={linksByFolder}
                         refreshData={refreshData}
                         isDarkMode={isDarkMode}
+                        loadLinksForFolder={loadLinksForFolder}
                     />
                 )}
             </div>
@@ -281,8 +294,9 @@ const FolderStructure = ({
     refreshData,
     openFolders,
     toggleFolder,
-    links,
-    isDarkMode
+    linksByFolder,
+    isDarkMode,
+    loadLinksForFolder
 }) => {
     const sortedFolders = [...folders].sort((a, b) => a.name.localeCompare(b.name))
     const rootFolders = sortedFolders.filter(folder => !folder.parentId)
@@ -293,11 +307,12 @@ const FolderStructure = ({
             folder={folder}
             openFolders={openFolders}
             toggleFolder={toggleFolder}
-            links={links.filter(link => link.collectionId === folder.id)}
+            links={linksByFolder[folder.id] || []}
             subFolders={sortedFolders.filter(f => f.parentId === folder.id)}
             renderFolder={renderFolder}
             refreshData={refreshData}
             isDarkMode={isDarkMode}
+            loadLinksForFolder={loadLinksForFolder}
         />
     )
 
@@ -312,10 +327,17 @@ const FolderItem = ({
     links,
     subFolders,
     renderFolder,
-    isDarkMode
+    isDarkMode,
+    loadLinksForFolder
 }) => {
     const isOpen = openFolders.has(folder.id)
     const sortedLinks = [...links].sort((a, b) => a.name.localeCompare(b.name))
+
+    useEffect(() => {
+        if (isOpen && links.length === 0) {
+            loadLinksForFolder(folder.id)
+        }
+    }, [isOpen, folder.id, links.length, loadLinksForFolder])
 
     return (
         <div className="mb-2">
@@ -343,7 +365,7 @@ const FolderItem = ({
                         <LinkItem
                             key={link.id}
                             link={link}
-                            refreshData={refreshData}
+                            refreshData={() => loadLinksForFolder(folder.id)}
                             isDarkMode={isDarkMode}
                         />
                     ))}
