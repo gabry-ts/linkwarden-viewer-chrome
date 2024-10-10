@@ -1,8 +1,16 @@
-import { LinkIcon, Trash2 } from 'lucide-react';
+import { Edit3, LinkIcon, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
+import { AddLinkModal } from './AddLinkModal';
 
-export const LinkItem = ({ link, refreshData, isDarkMode }) => {
+export const LinkItem = ({
+  link,
+  refreshData,
+  isDarkMode,
+  showCollectionName = false,
+}) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [newLink, setNewLink] = useState(link);
 
   const handleDelete = () => {
     setShowConfirmDelete(true);
@@ -25,6 +33,34 @@ export const LinkItem = ({ link, refreshData, isDarkMode }) => {
   const cancelDelete = () => {
     setShowConfirmDelete(false);
   };
+
+  const handleEdit = () => {
+    setShowEditModal(true);
+  };
+
+  const saveEditLink = (e: React.FormEvent) => {
+    e.preventDefault();
+    chrome.runtime.sendMessage(
+      { action: 'updateLink', id: link.id, data: newLink },
+      (response) => {
+        if (response.success) {
+          refreshData();
+        } else {
+          alert('Error updating link. Please try again.');
+        }
+      },
+    );
+    setShowEditModal(false);
+  };
+
+  const handleNewLinkChange = (e) => {
+    setNewLink({ ...newLink, [e.target.name]: e.target.value });
+  };
+
+  const handleTagChange = (tags) => {
+    setNewLink({ ...newLink, tags });
+  };
+
   return (
     <div
       className={`flex flex-col p-2 rounded-md mb-2 relative group ${
@@ -44,11 +80,11 @@ export const LinkItem = ({ link, refreshData, isDarkMode }) => {
           {link.name}
         </a>
         <button
-          onClick={handleDelete}
-          className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2"
-          title="Delete link"
+          onClick={handleEdit}
+          className="text-gray-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2"
+          title="Edit link"
         >
-          <Trash2 size={16} />
+          <Edit3 size={16} />
         </button>
       </div>
       <div className="flex justify-between mt-1 text-xs text-gray-500">
@@ -59,6 +95,16 @@ export const LinkItem = ({ link, refreshData, isDarkMode }) => {
           </span>
         )}
       </div>
+      {showCollectionName && (
+        <div className="text-xs text-gray-400 ">{link.collection.name}</div>
+      )}
+      <button
+        onClick={handleDelete}
+        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 self-end"
+        title="Delete link"
+      >
+        <Trash2 size={16} />
+      </button>
       {showConfirmDelete && (
         <div
           className={`absolute inset-0 ${
@@ -85,6 +131,18 @@ export const LinkItem = ({ link, refreshData, isDarkMode }) => {
             </button>
           </div>
         </div>
+      )}
+      {showEditModal && (
+        <AddLinkModal
+          newLink={newLink}
+          allTags={[]}
+          folders={[]}
+          handleNewLinkChange={handleNewLinkChange}
+          handleTagChange={handleTagChange}
+          saveNewLink={saveEditLink}
+          closeAddLinkModal={() => setShowEditModal(false)}
+          isDarkMode={isDarkMode}
+        />
       )}
     </div>
   );

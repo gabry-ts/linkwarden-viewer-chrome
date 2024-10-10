@@ -62,60 +62,35 @@ const Popup = () => {
     setIsAddLinkModalOpen(true);
   }, []);
 
-  const loadOpenFolders = () => {
-    chrome.storage.local.get('openFolders', (result) => {
-      if (result.openFolders) {
-        setOpenFolders(new Set(result.openFolders));
-        result.openFolders.forEach((folderId) => {
-          loadLinksForFolder(folderId);
-        });
-      }
-    });
-  };
-
-  const getAllLinks = () => {
+  const getAllLinks = useCallback(() => {
     chrome.runtime.sendMessage({ action: 'getAllLinks' }, (response) => {
       if (response) {
         setAllLinks(response);
       }
     });
-  };
+  }, []);
 
   const saveOpenFolders = useCallback((newOpenFolders) => {
     chrome.storage.local.set({ openFolders: Array.from(newOpenFolders) });
   }, []);
 
-  const checkOptions = () => {
+  const checkOptions = useCallback(() => {
     chrome.runtime.sendMessage({ action: 'checkOptions' }, (optionsSet) => {
       if (optionsSet) {
         refreshData();
       }
     });
-  };
+  }, []);
 
-  const refreshData = () => {
+  const refreshData = useCallback(() => {
     chrome.runtime.sendMessage({ action: 'getFolders' }, (response) => {
       if (response) {
         setFolders(response);
       }
     });
-  };
+  }, []);
 
-  const toggleFolder = (folderId: string) => {
-    setOpenFolders((prevOpenFolders) => {
-      const newOpenFolders = new Set(prevOpenFolders);
-      if (newOpenFolders.has(folderId)) {
-        newOpenFolders.delete(folderId);
-      } else {
-        newOpenFolders.add(folderId);
-        loadLinksForFolder(folderId);
-      }
-      saveOpenFolders(newOpenFolders);
-      return newOpenFolders;
-    });
-  };
-
-  const loadLinksForFolder = (folderId: string) => {
+  const loadLinksForFolder = useCallback((folderId: string) => {
     chrome.runtime.sendMessage(
       { action: 'getLinks', collectionId: folderId },
       (response) => {
@@ -127,23 +102,48 @@ const Popup = () => {
         }
       },
     );
-  };
+  }, []);
 
+  const loadOpenFolders = useCallback(() => {
+    chrome.storage.local.get('openFolders', (result) => {
+      if (result.openFolders) {
+        setOpenFolders(new Set(result.openFolders));
+        result.openFolders.forEach((folderId) => {
+          loadLinksForFolder(folderId);
+        });
+      }
+    });
+  }, [loadLinksForFolder]);
+
+  const toggleFolder = useCallback(
+    (folderId: string) => {
+      setOpenFolders((prevOpenFolders) => {
+        const newOpenFolders = new Set(prevOpenFolders);
+        if (newOpenFolders.has(folderId)) {
+          newOpenFolders.delete(folderId);
+        } else {
+          newOpenFolders.add(folderId);
+          loadLinksForFolder(folderId);
+        }
+        saveOpenFolders(newOpenFolders);
+        return newOpenFolders;
+      });
+    },
+    [loadLinksForFolder, saveOpenFolders],
+  );
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  const filteredLinks = Object.values(linksByFolder)
-    .flat()
-    .filter(
-      (link: { name: string; url: string; tags?: { name: string }[] }) =>
-        link.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        link.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (link.tags &&
-          link.tags.some((tag) =>
-            tag.name.toLowerCase().includes(searchQuery.toLowerCase()),
-          )),
-    );
+  const filteredLinks = Object.values(allLinks).filter(
+    (link: { name: string; url: string; tags?: { name: string }[] }) =>
+      link.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      link.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (link.tags &&
+        link.tags.some((tag) =>
+          tag.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        )),
+  );
 
   const closeAddLinkModal = () => {
     setIsAddLinkModalOpen(false);
@@ -218,19 +218,6 @@ const Popup = () => {
           } text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
         >
           <Plus size={20} />
-        </button>
-        <button
-          onClick={openSettings}
-          className={`ml-2 p-2 rounded-md ${
-            isDarkMode
-              ? 'bg-gray-800 hover:bg-gray-700'
-              : 'bg-gray-200 hover:bg-gray-300'
-          } focus:outline-none focus:ring-2 focus:ring-gray-500`}
-        >
-          <Settings
-            size={20}
-            className={isDarkMode ? 'text-white' : 'text-gray-700'}
-          />
         </button>
         <button
           onClick={toggleDarkMode}

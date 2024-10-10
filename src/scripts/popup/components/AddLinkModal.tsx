@@ -55,60 +55,67 @@ export const AddLinkModal = ({
               placeholder="Link Title"
             />
           </div>
-          <div>
-            <label
-              htmlFor="collectionId"
-              className="block text-xs font-medium mb-1"
-            >
-              Folder
-            </label>
-            <select
-              id="collectionId"
-              name="collectionId"
-              value={newLink.collectionId}
-              onChange={handleNewLinkChange}
-              required
-              className={`w-full px-1 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-black'
-              }`}
-            >
-              <option value="">Select a folder</option>
-              {folders
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((folder) => (
-                  <option key={folder.id} value={folder.id}>
-                    {folder.parent
-                      ? folder.parent.name + ' / ' + folder.name
-                      : folder.name}
+          {folders.length > 0 && (
+            <div>
+              <label
+                htmlFor="collectionId"
+                className="block text-xs font-medium mb-1"
+              >
+                Folder
+              </label>
+              <select
+                id="collectionId"
+                name="collectionId"
+                value={newLink.collectionId}
+                onChange={handleNewLinkChange}
+                required
+                className={`w-full px-1 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-black'
+                }`}
+              >
+                <option value="">Select a folder</option>
+                {folders
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((folder) => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.parent
+                        ? folder.parent.name + ' / ' + folder.name
+                        : folder.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
+          {allTags.length > 0 && (
+            <div>
+              <label
+                htmlFor="tagIds"
+                className="block text-xs font-medium mb-1"
+              >
+                Tags
+              </label>
+              <select
+                id="tagIds"
+                name="tagIds"
+                multiple
+                value={newLink.tagIds}
+                onChange={handleTagChange}
+                className={`w-full px-1 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-black'
+                }`}
+              >
+                {allTags.map((tag) => (
+                  <option key={tag.id} value={tag.id}>
+                    {tag.name}
                   </option>
                 ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="tagIds" className="block text-xs font-medium mb-1">
-              Tags
-            </label>
-            <select
-              id="tagIds"
-              name="tagIds"
-              multiple
-              value={newLink.tagIds}
-              onChange={handleTagChange}
-              className={`w-full px-1 py-1 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-black'
-              }`}
-            >
-              {allTags.map((tag) => (
-                <option key={tag.id} value={tag.id}>
-                  {tag.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              </select>
+            </div>
+          )}
         </div>
         <div className="mt-1 flex justify-end space-x-3">
           <button

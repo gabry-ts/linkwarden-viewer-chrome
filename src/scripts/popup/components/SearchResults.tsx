@@ -10,6 +10,7 @@ export const SearchResults = ({ links, refreshData, isDarkMode }) => {
         <LinkItem
           key={link.id}
           link={link}
+          showCollectionName={true}
           refreshData={refreshData}
           isDarkMode={isDarkMode}
         />

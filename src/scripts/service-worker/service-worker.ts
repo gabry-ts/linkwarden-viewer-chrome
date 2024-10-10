@@ -77,7 +77,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     service.saveLink(request.link).then(sendResponse);
     return true;
   } else if (request.action === 'getAllLinks') {
-    service.fetchAllLinks().then(sendResponse);
+    service.fetchAllLinksFromFolders().then(sendResponse);
+    return true;
+  } else if (request.action === 'updateLink') {
+    service.updateLink(request.id, request.data).then(sendResponse);
     return true;
   } else if (request.action === 'deleteLink') {
     service.deleteLink(request.id).then(sendResponse);
