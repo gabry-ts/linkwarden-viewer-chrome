@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Save, RefreshCw } from 'lucide-react';
+import { browser } from 'webextension-polyfill-ts';
 
 const Options = () => {
   const [host, setHost] = useState('');
@@ -10,14 +11,13 @@ const Options = () => {
   const [showToken, setShowToken] = useState(false);
 
   useEffect(() => {
-    chrome.storage.sync.get(
-      ['host', 'token', 'refreshInterval'],
-      function (items) {
+    browser.storage.sync
+      .get(['host', 'token', 'refreshInterval'])
+      .then(function (items) {
         setHost(items.host || '');
         setToken(items.token || '');
         setRefreshInterval(items.refreshInterval || 30);
-      },
-    );
+      });
 
     const darkModeMediaQuery = window.matchMedia(
       '(prefers-color-scheme: dark)',
@@ -32,16 +32,20 @@ const Options = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    chrome.storage.sync.set({ host, token, refreshInterval }, function () {
-      setStatus('Options saved successfully.');
-      setTimeout(() => setStatus(''), 3000);
-      chrome.alarms.create('refreshData', { periodInMinutes: refreshInterval });
-    });
+    browser.storage.sync
+      .set({ host, token, refreshInterval })
+      .then(function () {
+        setStatus('Options saved successfully.');
+        setTimeout(() => setStatus(''), 3000);
+        browser.alarms.create('refreshData', {
+          periodInMinutes: refreshInterval,
+        });
+      });
   };
 
   const handleRefresh = () => {
     setStatus('Refreshing data...');
-    chrome.runtime.sendMessage({ action: 'refreshData' }, function (response) {
+    browser.runtime.sendMessage({ action: 'refreshData' }, function (response) {
       if (response) {
         setStatus('Data refreshed successfully.');
       } else {

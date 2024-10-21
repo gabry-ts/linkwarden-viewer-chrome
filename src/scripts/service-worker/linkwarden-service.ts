@@ -1,3 +1,4 @@
+import { browser } from 'webextension-polyfill-ts';
 export class LinkwardenService {
   host: string;
   token: string;
@@ -8,15 +9,17 @@ export class LinkwardenService {
     this.init();
   }
   init() {
-    chrome.storage.sync.get(['host', 'token', 'refreshInterval'], (result) => {
-      this.host = result.host;
-      this.token = result.token;
-      if (result.refreshInterval) {
-        chrome.alarms.create('refreshData', {
-          periodInMinutes: parseInt(result.refreshInterval),
-        });
-      }
-    });
+    browser.storage.sync
+      .get(['host', 'token', 'refreshInterval'])
+      .then((result) => {
+        this.host = result.host;
+        this.token = result.token;
+        if (result.refreshInterval) {
+          browser.alarms.create('refreshData', {
+            periodInMinutes: parseInt(result.refreshInterval),
+          });
+        }
+      });
   }
 
   async fetchFolders() {
@@ -27,7 +30,7 @@ export class LinkwardenService {
         },
       });
       const data = await response.json();
-      chrome.storage.local.set({ folders: data.response });
+      browser.storage.local.set({ folders: data.response });
       return data.response;
     } catch (error) {
       console.error('Error fetching folders:', error);

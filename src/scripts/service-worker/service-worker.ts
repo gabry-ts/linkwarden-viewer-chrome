@@ -1,90 +1,79 @@
 import { LinkwardenService } from './linkwarden-service';
+import { browser } from 'webextension-polyfill-ts';
 
 let host: string;
 let token: string;
 
 console.log('Background Service Worker Loaded');
 
-chrome.runtime.onInstalled.addListener(async () => {
+browser.runtime.onInstalled.addListener(async () => {
   console.log('Extension installed');
 });
 
-chrome.action.setBadgeText({ text: 'ON' });
+browser.action.setBadgeText({ text: 'ON' });
 
-chrome.action.onClicked.addListener(() => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+browser.action.onClicked.addListener(() => {
+  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     const activeTab = tabs[0];
-    chrome.tabs.sendMessage(activeTab.id!, {
+    browser.tabs.sendMessage(activeTab.id!, {
       message: 'clicked_browser_action',
     });
   });
 });
 
-chrome.commands.onCommand.addListener((command) => {
+browser.commands.onCommand.addListener((command) => {
   console.log(`Command: ${command}`);
 
   if (command === 'refresh_extension') {
-    chrome.runtime.reload();
+    browser.runtime.reload();
   }
 });
 
-chrome.storage.sync.get(
-  ['host', 'token', 'refreshInterval'],
-  function (result) {
+browser.storage.sync
+  .get(['host', 'token', 'refreshInterval'])
+  .then(function (result) {
     host = result.host;
     token = result.token;
 
     if (result.refreshInterval) {
-      chrome.alarms.create('refreshData', {
+      browser.alarms.create('refreshData', {
         periodInMinutes: parseInt(result.refreshInterval),
       });
     }
-  },
-);
+  });
 
-chrome.alarms.onAlarm.addListener(function (alarm) {
+browser.alarms.onAlarm.addListener(function (alarm) {
   if (alarm.name === 'refreshData') {
     const service = new LinkwardenService(host, token);
     service.fetchFolders();
   }
 });
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+browser.runtime.onMessage.addListener(async (request, sender): Promise<any> => {
   const service = new LinkwardenService(host, token);
 
   console.log('Message received:', request);
   if (request.action === 'checkOptions') {
-    sendResponse(!!host && !!token);
+    return !!host && !!token;
   } else if (request.action === 'getFolders') {
-    chrome.storage.local.get('folders', function (result) {
-      if (result.folders) {
-        sendResponse(result.folders);
-      } else {
-        service.fetchFolders().then(sendResponse);
-      }
-    });
+    const folders = await browser.storage.local.get('folders');
+    if (folders && folders.folders) return folders.folders;
+    return await service.fetchFolders();
     return true;
   } else if (request.action === 'getLinks') {
-    service.fetchLinks(request.collectionId).then(sendResponse);
-    return true;
+    return await service.fetchLinks(request.collectionId);
   } else if (request.action === 'refreshData') {
-    service.fetchFolders().then(sendResponse);
-    return true;
+    return await service.fetchFolders();
   } else if (request.action === 'getTags') {
-    service.fetchTags().then(sendResponse);
-    return true;
+    return await service.fetchTags();
   } else if (request.action === 'saveLink') {
-    service.saveLink(request.link).then(sendResponse);
-    return true;
+    return await service.saveLink(request.link);
   } else if (request.action === 'getAllLinks') {
-    service.fetchAllLinksFromFolders().then(sendResponse);
-    return true;
+    return await service.fetchAllLinksFromFolders();
   } else if (request.action === 'updateLink') {
-    service.updateLink(request.id, request.data).then(sendResponse);
-    return true;
+    return await service.updateLink(request.id, request.data);
   } else if (request.action === 'deleteLink') {
-    service.deleteLink(request.id).then(sendResponse);
-    return true;
+    return await service.deleteLink(request.id);
   }
 });
 

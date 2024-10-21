@@ -4,6 +4,7 @@ import { AddLinkModal } from './components/AddLinkModal';
 import { FolderStructure } from './components/FolderStructure';
 import { SearchResults } from './components/SearchResults';
 import { useDarkMode } from './hooks/useDarkMode';
+import { browser } from 'webextension-polyfill-ts';
 
 const Popup = () => {
   const [folders, setFolders] = useState([]);
@@ -28,7 +29,7 @@ const Popup = () => {
     getAllLinks();
     loadOpenFolders();
     checkOptions();
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
       if (tabs[0] && tabs[0].url) {
         setCurrentUrl(tabs[0].url);
       }
@@ -36,9 +37,9 @@ const Popup = () => {
   }, []);
 
   const openAddLinkModal = useCallback(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
       if (tabs[0] && tabs[0].url) {
-        chrome.runtime.sendMessage(
+        browser.runtime.sendMessage(
           { action: 'getFolders' },
           (foldersResponse) => {
             if (foldersResponse) {
@@ -56,14 +57,14 @@ const Popup = () => {
         );
       }
     });
-    chrome.runtime.sendMessage({ action: 'getTags' }, (response) => {
+    browser.runtime.sendMessage({ action: 'getTags' }, (response) => {
       setAllTags(response);
     });
     setIsAddLinkModalOpen(true);
   }, []);
 
   const getAllLinks = useCallback(() => {
-    chrome.runtime.sendMessage({ action: 'getAllLinks' }, (response) => {
+    browser.runtime.sendMessage({ action: 'getAllLinks' }, (response) => {
       if (response) {
         setAllLinks(response);
       }
@@ -71,11 +72,11 @@ const Popup = () => {
   }, []);
 
   const saveOpenFolders = useCallback((newOpenFolders) => {
-    chrome.storage.local.set({ openFolders: Array.from(newOpenFolders) });
+    browser.storage.local.set({ openFolders: Array.from(newOpenFolders) });
   }, []);
 
   const checkOptions = useCallback(() => {
-    chrome.runtime.sendMessage({ action: 'checkOptions' }, (optionsSet) => {
+    browser.runtime.sendMessage({ action: 'checkOptions' }, (optionsSet) => {
       if (optionsSet) {
         refreshData();
       }
@@ -83,7 +84,7 @@ const Popup = () => {
   }, []);
 
   const refreshData = useCallback(() => {
-    chrome.runtime.sendMessage({ action: 'getFolders' }, (response) => {
+    browser.runtime.sendMessage({ action: 'getFolders' }, (response) => {
       if (response) {
         setFolders(response);
       }
@@ -91,7 +92,7 @@ const Popup = () => {
   }, []);
 
   const loadLinksForFolder = useCallback((folderId: string) => {
-    chrome.runtime.sendMessage(
+    browser.runtime.sendMessage(
       { action: 'getLinks', collectionId: folderId },
       (response) => {
         if (response) {
@@ -105,7 +106,7 @@ const Popup = () => {
   }, []);
 
   const loadOpenFolders = useCallback(() => {
-    chrome.storage.local.get('openFolders', (result) => {
+    browser.storage.local.get('openFolders').then((result) => {
       if (result.openFolders) {
         setOpenFolders(new Set(result.openFolders));
         result.openFolders.forEach((folderId) => {
@@ -165,7 +166,7 @@ const Popup = () => {
 
   const saveNewLink = (e: React.FormEvent) => {
     e.preventDefault();
-    chrome.runtime.sendMessage(
+    browser.runtime.sendMessage(
       { action: 'saveLink', link: newLink },
       (response) => {
         if (response.success) {
@@ -180,7 +181,7 @@ const Popup = () => {
   };
 
   const openSettings = () => {
-    chrome.runtime.openOptionsPage();
+    browser.runtime.openOptionsPage();
   };
 
   const toggleDarkMode = () => {

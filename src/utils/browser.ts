@@ -9,6 +9,10 @@ export const sendMessageToBackground = async (message: any): Promise<any> => {
   }
 };
 
+export const onMessageListener = (callback: (message: any) => void): void => {
+  return browser.runtime.onMessage.addListener(callback);
+};
+
 export const sendMessageToContentScript = async (
   message: any,
 ): Promise<any> => {

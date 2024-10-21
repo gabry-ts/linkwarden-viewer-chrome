@@ -1,6 +1,7 @@
 import { Edit3, LinkIcon, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { AddLinkModal } from './AddLinkModal';
+import { browser } from 'webextension-polyfill-ts';
 
 export const LinkItem = ({
   link,
@@ -17,7 +18,7 @@ export const LinkItem = ({
   };
 
   const confirmDelete = () => {
-    chrome.runtime.sendMessage(
+    browser.runtime.sendMessage(
       { action: 'deleteLink', id: link.id },
       (response) => {
         if (response.success) {
@@ -40,7 +41,7 @@ export const LinkItem = ({
 
   const saveEditLink = (e: React.FormEvent) => {
     e.preventDefault();
-    chrome.runtime.sendMessage(
+    browser.runtime.sendMessage(
       { action: 'updateLink', id: link.id, data: newLink },
       (response) => {
         if (response.success) {
